@@ -1,4 +1,4 @@
-import { Image, View, Button, Pressable, FlatList, SafeAreaView, Text, TouchableOpacity, StyleSheet, Platform } from 'react-native';
+import { Image, View, Button, Alert, Pressable, FlatList, SafeAreaView, Text, TouchableOpacity, StyleSheet, Platform } from 'react-native';
 import React, { useEffect, useState } from "react";
 
 import { HelloWave } from '@/components/HelloWave';
@@ -8,15 +8,15 @@ import { ThemedView } from '@/components/ThemedView';
 
 export default function HomeScreen() {
   const [grid, setGrid] = useState([
-    {id: 1, takenBy: ''},
-    {id: 2, takenBy: ''},
-    {id: 3, takenBy: ''},
-    {id: 4, takenBy: ''},
-    {id: 5, takenBy: ''},
-    {id: 6, takenBy: ''},
-    {id: 7, takenBy: ''},
-    {id: 8, takenBy: ''},
-    {id: 9, takenBy: ''}
+    {id: 1, takenBy: '', bgColor: '#ddd'},
+    {id: 2, takenBy: '', bgColor: '#ddd'},
+    {id: 3, takenBy: '', bgColor: '#ddd'},
+    {id: 4, takenBy: '', bgColor: '#ddd'},
+    {id: 5, takenBy: '', bgColor: '#ddd'},
+    {id: 6, takenBy: '', bgColor: '#ddd'},
+    {id: 7, takenBy: '', bgColor: '#ddd'},
+    {id: 8, takenBy: '', bgColor: '#ddd'},
+    {id: 9, takenBy: '', bgColor: '#ddd'}
   ])
 
   const [currentTurn, setCurrentTurn] = useState("X")
@@ -25,16 +25,55 @@ export default function HomeScreen() {
 
     setCurrentTurn("X")
     setGrid([
-      {id: 1, takenBy: ''},
-      {id: 2, takenBy: ''},
-      {id: 3, takenBy: ''},
-      {id: 4, takenBy: ''},
-      {id: 5, takenBy: ''},
-      {id: 6, takenBy: ''},
-      {id: 7, takenBy: ''},
-      {id: 8, takenBy: ''},
-      {id: 9, takenBy: ''}
+      {id: 1, takenBy: '', bgColor: '#ddd'},
+      {id: 2, takenBy: '', bgColor: '#ddd'},
+      {id: 3, takenBy: '', bgColor: '#ddd'},
+      {id: 4, takenBy: '', bgColor: '#ddd'},
+      {id: 5, takenBy: '', bgColor: '#ddd'},
+      {id: 6, takenBy: '', bgColor: '#ddd'},
+      {id: 7, takenBy: '', bgColor: '#ddd'},
+      {id: 8, takenBy: '', bgColor: '#ddd'},
+      {id: 9, takenBy: '', bgColor: '#ddd'}
     ])
+  }
+
+  useEffect(() => {
+    checkWinner();
+  }, [grid])
+
+  const checkWinner = () => {
+    // vertical
+    const winning_combinations = ['123', '456', '789', '147', '258', '369', '357', '159']
+
+    for (var i = 0; i < winning_combinations.length; i++){
+
+      const combination = winning_combinations[i];
+      let current_total = 0;
+
+      for (var j = 0; j < combination.length; j++){
+        const idx = parseInt(combination[j]) - 1
+
+        // console.log(grid[idx].takenBy);
+        if (grid[idx].takenBy == "X") {
+          current_total++;
+        } else if (grid[idx].takenBy == "O") {
+          current_total--;
+        }
+      }
+      // console.log(current_total);
+
+      if (current_total == 3) {
+        // winner is X
+        Alert.alert("X won")
+        return "X";
+      } else if (current_total == -3) {
+        // winner is O
+        Alert.alert("O won")
+        return "O";
+      }
+    }
+
+    return "";
   }
 
   const pressHandler = (id) => {
@@ -42,16 +81,13 @@ export default function HomeScreen() {
     console.log(currentTurn)
 
     if (grid[id-1].takenBy === "") {
-      console.log("TAKEN")
-
       setGrid(prevGrid => 
-
-
         prevGrid.map(item => 
           (item.id === id) && (item.takenBy === '')? { ...item, takenBy: currentTurn} : item
         )
       );
   
+
       setCurrentTurn((prevTurn) => {
         if (prevTurn == "X") {
           return "O";
@@ -59,6 +95,8 @@ export default function HomeScreen() {
           return "X";
         }
       })
+
+      
     } else {
       console.log("TAKEN")
     }
@@ -77,7 +115,7 @@ export default function HomeScreen() {
         keyExtractor={(item) => item.id}
         numColumns={3}
         renderItem={({ item }) => (
-          <TouchableOpacity onPress={(id) => pressHandler(item.id)} style={styles.block}>
+          <TouchableOpacity onPress={(id) => pressHandler(item.id)} style={[styles.block, {backgroundColor: item.bgColor}]}>
             <Text style={styles.blockText}>{item.takenBy}</Text>
           </TouchableOpacity>
           
