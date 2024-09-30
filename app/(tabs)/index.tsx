@@ -17,13 +17,17 @@ export default function HomeScreen() {
     {id: 7, takenBy: '', bgColor: '#ddd'},
     {id: 8, takenBy: '', bgColor: '#ddd'},
     {id: 9, takenBy: '', bgColor: '#ddd'}
-  ])
+  ]);
 
-  const [currentTurn, setCurrentTurn] = useState("X")
+  const [currentlyPlaying, setCurrentlyPlaying] = useState(true);
+  const [currentTurn, setCurrentTurn] = useState("X");
+  const [numMoves, setNumMoves] = useState(0);
+  const [displayText, setDisplayText] = useState(currentTurn + "'s turn");
 
   const restartGame = () => {
-
-    setCurrentTurn("X")
+    setDisplayText(currentTurn + "'s turn")
+    setCurrentlyPlaying(true);
+    setCurrentTurn("X"); // X goes first
     setGrid([
       {id: 1, takenBy: '', bgColor: '#ddd'},
       {id: 2, takenBy: '', bgColor: '#ddd'},
@@ -34,17 +38,33 @@ export default function HomeScreen() {
       {id: 7, takenBy: '', bgColor: '#ddd'},
       {id: 8, takenBy: '', bgColor: '#ddd'},
       {id: 9, takenBy: '', bgColor: '#ddd'}
-    ])
+    ]);
   }
 
+  
+  const updateGridColors = (ids: string, newColor: string) => {
+    console.log("updateGridColors called", ids)
+
+    setGrid(prevGrid => 
+      prevGrid.map(item =>
+        ids.includes(item.id.toString()) ? { ...item, bgColor: newColor } : item
+      )
+    );
+
+    // console.log(grid);
+    
+  };
+
   useEffect(() => {
+    setDisplayText(currentTurn + "'s turn")
     checkWinner();
-  }, [grid])
+  }, [currentTurn]);
 
   const checkWinner = () => {
     // vertical
     const winning_combinations = ['123', '456', '789', '147', '258', '369', '357', '159']
-
+    let numEmptyCells = 0;
+    
     for (var i = 0; i < winning_combinations.length; i++){
 
       const combination = winning_combinations[i];
@@ -58,35 +78,51 @@ export default function HomeScreen() {
           current_total++;
         } else if (grid[idx].takenBy == "O") {
           current_total--;
+        } else {
+          numEmptyCells++;
         }
       }
       // console.log(current_total);
 
       if (current_total == 3) {
         // winner is X
-        Alert.alert("X won")
+        
+        setDisplayText("X WON")
+        setCurrentlyPlaying(false);
+        updateGridColors(combination, "#90EE90");
+
         return "X";
       } else if (current_total == -3) {
         // winner is O
-        Alert.alert("O won")
+        setDisplayText("O WON")
+        setCurrentlyPlaying(false);
+        updateGridColors(combination, "#90EE90");
+
         return "O";
       }
+    }
+
+    if (numEmptyCells == 0){
+      setDisplayText("TIE");
     }
 
     return "";
   }
 
   const pressHandler = (id) => {
-    console.log(id)
-    console.log(currentTurn)
+    console.log(id, currentTurn)
+
+
+
+    if (currentlyPlaying == false) return;
 
     if (grid[id-1].takenBy === "") {
       setGrid(prevGrid => 
         prevGrid.map(item => 
-          (item.id === id) && (item.takenBy === '')? { ...item, takenBy: currentTurn} : item
+          (item.id === id) && (item.takenBy === '')? { ...item, bgColor: "#ccc", takenBy: currentTurn} : item
         )
       );
-  
+
 
       setCurrentTurn((prevTurn) => {
         if (prevTurn == "X") {
@@ -108,11 +144,12 @@ export default function HomeScreen() {
     <SafeAreaView
       style={styles.container}>
 
-      <Text style={styles.heading}>{currentTurn}'s turn</Text>
+      <Text style={styles.heading}>{displayText}</Text>
 
       <FlatList 
         data={grid}
         keyExtractor={(item) => item.id}
+        style = {styles.flatList}
         numColumns={3}
         renderItem={({ item }) => (
           <TouchableOpacity onPress={(id) => pressHandler(item.id)} style={[styles.block, {backgroundColor: item.bgColor}]}>
@@ -156,18 +193,24 @@ const styles = StyleSheet.create({
     fontSize: 40
   },
 
+  flatList: {
+    height: 'auto',
+    margin: 20,
+    flexGrow: 0
+  },
+
   button: {
     alignItems: 'center',
     justifyContent: 'center',
     paddingVertical: 12,
     paddingHorizontal: 32,
-    borderRadius: 4,
-    elevation: 3,
-    backgroundColor: 'black',
+    borderRadius: 6,
+    elevation: 2,
+    backgroundColor: '#444',
   },
   text: {
-    fontSize: 16,
-    lineHeight: 21,
+    fontSize: 21,
+    lineHeight: 32,
     fontWeight: 'bold',
     letterSpacing: 0.25,
     color: 'white',
